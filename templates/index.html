@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard de Vendas - Início{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-body">
+                <h1 class="text-center mb-4">Bem-vindo ao Dashboard de Vendas</h1>
+                <p class="lead text-center">
+                    Sistema de análise de dados usando Python, Flask, SQL e visualizações interativas.
+                </p>
+                
+                <div class="text-center mt-5">
+                    <a href="/dashboard" class="btn btn-primary btn-lg">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Ver Dashboard
+                    </a>
+                </div>
+                
+                <hr class="my-5">
+                
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">SQL</h5>
+                                <p class="card-text">Consultas otimizadas e modelagem de dados relacional.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fab fa-python fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">Python</h5>
+                                <p class="card-text">Backend em Flask com processamento de dados em Pandas.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">Visualização</h5>
+                                <p class="card-text">Gráficos interativos com Plotly e frontend responsivo.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

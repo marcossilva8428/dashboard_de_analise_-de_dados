@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard de Vendas - Análise{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="text-center">Dashboard de Vendas</h1>
+        <p class="text-center text-muted">Análise de dados de vendas em tempo real</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Vendas Mensais
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="sales-by-month" style="height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Vendas por Categoria
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="sales-by-category" style="height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    Vendas por Região
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="sales-by-region" style="height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow h-100">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-trophy me-2"></i>
+                        Top Produtos
+                    </h5>
+                    <div>
+                        <select id="top-products-limit" class="form-select form-select-sm bg-white">
+                            <option value="5">Top 5</option>
+                            <option value="10" selected>Top 10</option>
+                            <option value="15">Top 15</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="top-products" style="height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Tendência de Vendas
+                    </h5>
+                    <div>
+                        <select id="sales-trend-period" class="form-select form-select-sm bg-white">
+                            <option value="day">Por Dia</option>
+                            <option value="week">Por Semana</option>
+                            <option value="month" selected>Por Mês</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="sales-trend" style="height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Função para carregar e renderizar gráficos
+    function loadCharts() {
+        // Vendas por mês
+        fetch('/api/sales_by_month')
+            .then(response => response.json())
+            .then(data => {
+                Plotly.newPlot('sales-by-month', JSON.parse(data));
+            });
+        
+        // Vendas por categoria
+        fetch('/api/sales_by_category')
+            .then(response => response.json())
+            .then(data => {
+                Plotly.newPlot('sales-by-category', JSON.parse(data));
+            });
+        
+        // Vendas por região
+        fetch('/api/sales_by_region')
+            .then(response => response.json())
+            .then(data => {
+                Plotly.newPlot('sales-by-region', JSON.parse(data));
+            });
+        
+        // Top produtos
+        loadTopProducts();
+        
+        // Tendência de vendas
+        loadSalesTrend();
+    }
+    
+    // Função para carregar top produtos
+    function loadTopProducts() {
+        const limit = document.getElementById('top-products-limit').value;
+        
+        fetch(`/api/top_products?limit=${limit}`)
+            .then(response => response.json())
+            .then(data => {
+                Plotly.newPlot('top-products', JSON.parse(data));
+            });
+    }
+    
+    // Função para carregar tendência de vendas
+    function loadSalesTrend() {
+        const period = document.getElementById('sales-trend-period').value;
+        
+        fetch(`/api/sales_trend?period=${period}`)
+            .then(response => response.json())
+            .then(data => {
+                Plotly.newPlot('sales-trend', JSON.parse(data));
+            });
+    }
+    
+    // Event listeners
+    document.getElementById('top-products-limit').addEventListener('change', loadTopProducts);
+    document.getElementById('sales-trend-period').addEventListener('change', loadSalesTrend);
+    
+    // Carregar gráficos quando a página carregar
+    document.addEventListener('DOMContentLoaded', loadCharts);
+</script>
+{% endblock %}

@@ -35,7 +35,9 @@ def sales_by_month():
     ORDER BY month
     """
     
-    df = pd.read_sql(query, engine)
+    with engine.connect() as connection:
+        result = connection.execute(text(query))
+        df = pd.DataFrame(result.fetchall(), columns=result.keys())
     
     # Criar gráfico com plotly
     fig = px.bar(df, x='month', y='total_sales', title='Vendas Mensais')
@@ -57,7 +59,9 @@ def sales_by_category():
     ORDER BY total_sales DESC
     """
     
-    df = pd.read_sql(query, engine)
+    with engine.connect() as connection:
+        result = connection.execute(text(query))
+        df = pd.DataFrame(result.fetchall(), columns=result.keys())
     
     # Criar gráfico com plotly
     fig = px.pie(df, values='total_sales', names='category', title='Vendas por Categoria')
@@ -79,7 +83,9 @@ def sales_by_region():
     ORDER BY total_sales DESC
     """
     
-    df = pd.read_sql(query, engine)
+    with engine.connect() as connection:
+        result = connection.execute(text(query))
+        df = pd.DataFrame(result.fetchall(), columns=result.keys())
     
     # Criar gráfico com plotly
     fig = px.bar(df, x='region', y='total_sales', title='Vendas por Região')
@@ -104,7 +110,9 @@ def top_products():
     LIMIT {limit}
     """
     
-    df = pd.read_sql(query, engine)
+    with engine.connect() as connection:
+        result = connection.execute(text(query))
+        df = pd.DataFrame(result.fetchall(), columns=result.keys())
     
     # Criar gráfico com plotly
     fig = px.bar(df, x='name', y='total_sales', title=f'Top {limit} Produtos')
@@ -137,7 +145,14 @@ def sales_trend():
     ORDER BY time_period
     """
     
-    df = pd.read_sql(query, engine)
+    # Método 1: Usando pd.read_sql_query diretamente com o engine
+    # df = pd.read_sql_query(text(query), engine)
+    
+    # Método 2 (alternativa): Usando execute() e DataFrame
+    with engine.connect() as connection:
+        result = connection.execute(text(query))
+        df = pd.DataFrame(result.fetchall())
+        df.columns = result.keys()
     
     # Criar gráfico com plotly
     fig = px.line(df, x='time_period', y='total_sales', title=f'Tendência de Vendas por {time_label.capitalize()}')

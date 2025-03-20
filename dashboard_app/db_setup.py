@@ -10,12 +10,12 @@ conn = sqlite3.connect('database/sales_data.db')
 cursor = conn.cursor()
 
 # Ler e executar o script schema.sql
-with open('database/schema.sql', 'r') as f:
+with open('database/schema.sql', 'r', encoding='utf-8') as f:
     schema_script = f.read()
     cursor.executescript(schema_script)
 
 # Ler e executar o script seed_data.sql
-with open('database/seed_data.sql', 'r') as f:
+with open('database/seed_data.sql', 'r', encoding='utf-8') as f:
     seed_script = f.read()
     cursor.executescript(seed_script)
 

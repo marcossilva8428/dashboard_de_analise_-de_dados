@@ -6,23 +6,125 @@ import plotly.express as px
 from sqlalchemy import create_engine, text
 import os
 from dotenv import load_dotenv
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask import Flask, render_template, jsonify, request, redirect, url_for, flash
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import DataRequired, Email, EqualTo
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Carregar variáveis de ambiente
 load_dotenv()
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'  # Mude para uma chave secreta forte
+
+# Configure o Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+# Modelo de usuário
+class User(UserMixin):
+    def __init__(self, id, email, password_hash):
+        self.id = id
+        self.email = email
+        self.password_hash = password_hash
+
+# Banco de dados de usuários simulado (substitua por um banco de dados real)
+users = {}
+
+@login_manager.user_loader
+def load_user(user_id):
+    return users.get(user_id)
+
+# Formulários
+class LoginForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Senha', validators=[DataRequired()])
+    submit = SubmitField('Entrar')
+
+class RegistrationForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Senha', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirmar Senha', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Registrar')
 
 # Configuração do banco de dados
 DATABASE_URI = os.getenv("DATABASE_URI", "sqlite:///database/sales_data.db")
 engine = create_engine(DATABASE_URI)
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        
+        # Procurar usuário pelo email
+        user_id = None
+        for uid, user_data in users.items():
+            if user_data.email == email:
+                user_id = uid
+                break
+        
+        if user_id and check_password_hash(users[user_id].password_hash, form.password.data):
+            login_user(users[user_id])
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('dashboard'))
+        else:
+            flash('Email ou senha inválidos')
+    
+    return render_template('login.html', form=form)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        
+        # Verificar se o email já está em uso
+        if any(user.email == email for user in users.values()):
+            flash('Este email já está registrado')
+            return render_template('register.html', form=form)
+        
+        # Criar um novo usuário
+        user_id = str(len(users) + 1)
+        users[user_id] = User(
+            id=user_id,
+            email=email,
+            password_hash=generate_password_hash(form.password.data)
+        )
+        
+        flash('Conta criada com sucesso! Faça login para continuar.')
+        return redirect(url_for('login'))
+    
+    return render_template('register.html', form=form)
+
+@app.route('/logout')
+@login_required
+
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html')
+# @app.route('/dashboard')
+# def dashboard():
+#     return render_template('dashboard.html')
 
 @app.route('/api/sales_by_month')
 def sales_by_month():
